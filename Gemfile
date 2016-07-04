@@ -6,3 +6,10 @@ platforms :rbx do
   gem 'psych'
   gem 'rubinius-developer_tools'
 end
+
+group :development do
+  gem 'pry', require: false
+  gem 'awesome_print', require: false
+end
+
+gem 'dry-validation', require: false

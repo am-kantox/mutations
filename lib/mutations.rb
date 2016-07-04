@@ -25,22 +25,23 @@ require 'mutations/command'
 
 module Mutations
   class << self
+    attr_writer :error_message_creator, :cache_constants, :use_standard_impl
+
     def error_message_creator
       @error_message_creator ||= DefaultErrorMessageCreator.new
-    end
-
-    def error_message_creator=(creator)
-      @error_message_creator = creator
-    end
-
-    def cache_constants=(val)
-      @cache_constants = val
     end
 
     def cache_constants?
       @cache_constants
     end
+
+    def use_standard_impl?
+      @use_standard_impl
+    end
   end
 end
 
 Mutations.cache_constants = true
+Mutations.use_standard_impl = ENV['STANDARD_MUTATIONS']
+
+require 'mutations/dry/init' unless Mutations.use_standard_impl?
