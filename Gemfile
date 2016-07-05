@@ -13,3 +13,4 @@ group :development do
 end
 
 gem 'dry-validation', require: false
+gem 'hashie', require: false
