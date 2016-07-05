@@ -24,6 +24,10 @@ Style/Alias:
   Exclude:
     - 'lib/**/*'
 
+Style/ParallelAssignment:
+  Exclude:
+    - 'lib/**/*'
+
 Style/SignalException:
   EnforcedStyle: semantic
 

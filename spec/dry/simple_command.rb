@@ -2,6 +2,10 @@ class SimpleCommand < Mutations::Command
   required do
     string :name, max_length: 10
     string :email, matches: /\A\w+@(\w+\.)+\w+\z/
+    hash :properties do
+      string :first, matches: /\A\w+\z/
+      integer :second
+    end
   end
 
   optional do
