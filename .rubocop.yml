@@ -24,6 +24,10 @@ Style/Alias:
   Exclude:
     - 'lib/**/*'
 
+Style/LambdaCall:
+  Exclude:
+    - 'lib/**/*'
+
 Style/ParallelAssignment:
   Exclude:
     - 'lib/**/*'

@@ -27,13 +27,18 @@ module Mutations
         end
       end
 
+      def ~@
+        # schema
+      end
+
       ##########################################################################
       ### type declaration DSL
       ##########################################################################
 
+      # FIXME: errors in double+ nested hashes are not nested! dry-rb glitch?
       def hash name
         current = @current # closure scope
-        nested = Instance.tap do |inst|
+        nested = Class.new(Instance).tap do |inst|
           inst.instance_variable_set(:@current, current)
           inst.instance_eval(&Proc.new)
         end.schema
@@ -42,21 +47,23 @@ module Mutations
         end
       end
 
-      def string name, **params
+      def generic_type name, **params
         # FIXME: :strip => true and siblings should be handled with procs?
         current = @current # closure scope
         type = [params[:nils] ? :maybe : :filled, build_type(__callee__)]
-        opts = params[:empty] ? {} : build_opts(__callee__, params)
+        opts = params[:empty] ? nil : build_opts(__callee__, params)
         puts type.inspect << $/ << opts.inspect
         schema do
-          if opts.empty?
-            __send__(current, name).__send__(*type)
-          else
-            __send__(current, name).__send__(*type, **opts)
-          end
-        end.tap { } # puts '' << $/ << $/ << schema.inspect << $/ << $/ ; binding.pry }
+          scope = __send__(current, name)
+          opts ? scope.__send__(*type, **opts) : scope.__send__(*type)
+        end
       end
-      alias_method :integer, :string
+
+      %i(string integer float).each do |m|
+        alias_method m, :generic_type
+      end
+
+      private :generic_type
 
     private
 
@@ -90,10 +97,10 @@ module Mutations
       # ★ :allow_control_characters => false    # false removes unprintable characters from the string
       def build_opts_string params
         {
-          min_size?:  (params[:min_length] || 1 if params[:min_length]),
-          max_size?:  (params[:max_length] if params[:max_length]),
-          format?:    (params[:matches] if params[:matches]),
-          inclusion?: (params[:in] if params[:in])
+          min_size?:    (params[:min_length] || 1 if params[:min_length]),
+          max_size?:    (params[:max_length] if params[:max_length]),
+          format?:      (params[:matches] if params[:matches]),
+          included_in?: (params[:in] if params[:in])
         }
       end
 
@@ -107,9 +114,9 @@ module Mutations
       # ★ :empty_is_nil => false,  # if true, treat empty string as if it were nil
       def build_opts_integer params
         {
-          min_size?:  (params[:min] if params[:min]),
-          max_size?:  (params[:max] if params[:max]),
-          inclusion?: (params[:in] if params[:in])
+          min_size?:    (params[:min] if params[:min]),
+          max_size?:    (params[:max] if params[:max]),
+          included_in?: (params[:in] if params[:in])
         }
       end
 

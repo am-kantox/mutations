@@ -1,6 +1,8 @@
 begin
   require 'dry-validation'
+  require 'mutations/dry/monkeypatches'
   require 'mutations/dry/schema'
+  require 'mutations/dry/command'
 rescue LoadError => e
   $stderr.puts [
     '[DRY] Unable to load dry validation extension.',
