@@ -51,11 +51,11 @@ module Mutations
         # FIXME: :strip => true and siblings should be handled with procs?
         current = @current # closure scope
         type = [params[:nils] ? :maybe : :filled, build_type(__callee__)]
-        opts = params[:empty] ? nil : build_opts(__callee__, params)
+        opts = params[:empty] ? {} : build_opts(__callee__, params)
         puts type.inspect << $/ << opts.inspect
         schema do
           scope = __send__(current, name)
-          opts ? scope.__send__(*type, **opts) : scope.__send__(*type)
+          opts.empty? ? scope.__send__(*type) : scope.__send__(*type, **opts)
         end
       end
 

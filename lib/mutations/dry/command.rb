@@ -19,9 +19,11 @@ module Mutations
         #       :properties=>{
         #           :second_arg=>{:second_sub_arg=>#<Mutations::ErrorAtom:0x000000095344a0 @key=:second_sub_arg, @symbol=:in, @message=nil, @index=nil>}
         #       :amount=>#<Mutations::ErrorAtom:0x00000009534068 @key=:amount, @symbol=:in, @message=nil, @index=nil>}
-        @errors = @validation.messages.map.with_index do |(k, v), idx|
-          [k, dig(k, v, idx)]
-        end.to_h
+        @errors = ErrorHash.new(
+          @validation.messages.map.with_index do |(k, v), idx|
+            [k, dig(k, v, idx)]
+          end.to_h
+        )
 
         # Run a custom validation method if supplied:
         validate unless has_errors?
