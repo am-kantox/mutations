@@ -15,6 +15,7 @@ module Mutations
 
       # FIXME: try-catch and call super in rescue clause
       def method_missing m, *args, &cb
+        puts "==> [MM] “#{m}” called with args: “#{args.inspect}”"
         name, current = args.shift, @current
         schema do
           configure do
@@ -38,24 +39,31 @@ module Mutations
       # FIXME: errors in double+ nested hashes are not nested! dry-rb glitch?
       def hash name
         current = @current # closure scope
-        nested = Class.new(Instance).tap do |inst|
-          inst.instance_variable_set(:@current, current)
-          inst.instance_eval(&Proc.new)
-        end.schema
-        schema do
-          __send__(current, name).schema(nested)
-        end
-        define_method(name) do
-          Mutations::Init.hashify @inputs[name]
-        end unless is_a?(Instance)
+        nested = Class.new(Instance).init(current, &Proc.new)
+        schema { __send__(current, name).schema(nested) }
+
+        define_method(name) { Mutations::Init.hashify @inputs[name] } unless is_a?(Instance)
       end
 
-      def generic_type name, **params
+      # FIXME: array of anonymous objects
+      def array name, &cb
+        current = @current # closure scope
+        nested =  begin
+                    Class.new(Instance).init(current, &cb)
+                  rescue AnonymousTypeDetected => err
+                    build_type err.type
+                  end
+        name.nil? ? schema { each(nested) } : schema { __send__(current, name).each(nested) }
+        define_method(name) { @inputs[name] } unless is_a?(Instance)
+      end
+
+      def generic_type name = nil, **params
+        fail AnonymousTypeDetected.new(__callee__) if name.nil?
+
         # FIXME: :strip => true and siblings should be handled with procs?
         current = @current # closure scope
         type = [params[:nils] ? :maybe : :filled, build_type(__callee__)]
         opts = params[:empty] ? {} : build_opts(__callee__, params)
-        puts type.inspect << $/ << opts.inspect
         schema do
           scope = __send__(current, name)
           opts.empty? ? scope.__send__(*type) : scope.__send__(*type, **opts)
@@ -139,6 +147,12 @@ module Mutations
 
       class Instance
         singleton_class.prepend Mutations::Dry::Schema
+
+        def self.init current
+          @current = current
+          instance_eval(&Proc.new) if block_given?
+          schema
+        end
       end
     end
   end

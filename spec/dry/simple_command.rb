@@ -1,3 +1,5 @@
+require 'mutations'
+
 class SimpleCommand < Mutations::Command
   required do
     string :name, max_length: 10, matches: /\A\z/
@@ -17,6 +19,25 @@ class SimpleCommand < Mutations::Command
 
   def execute
     inputs
+  end
+end
+
+class CommandWithArrayInput < Mutations::Command
+  required do
+    string :name, max_length: 10, matches: /\A\z/
+    array :emails do
+      string :email
+      string :type
+    end
+  end
+end
+
+class CommandWithAnonymousArrayInput < Mutations::Command
+  required do
+    string :name, max_length: 10, matches: /\A\z/
+    array :emails do
+      string
+    end
   end
 end
 

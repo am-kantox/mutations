@@ -3,6 +3,7 @@ module Mutations
     begin
       require 'dry-validation'
       require 'mutations/dry/monkeypatches'
+      require 'mutations/dry/errors'
       require 'mutations/dry/schema'
       require 'mutations/dry/command'
     rescue LoadError => e
