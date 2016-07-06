@@ -11,16 +11,24 @@ class SimpleCommand < Mutations::Command
     integer :amount, in: [42]
   end
 
-  schema do
-    optional(:just_in_case).filled(:int?, included_in?: [42])
-  end
-
   def validate
     #   add_error(:email, :invalid, 'Email must contain @') unless email && email.include?('@')
   end
 
   def execute
     inputs
+  end
+end
+
+class ExtendedCommand < SimpleCommand
+  schema do
+    optional(:ext_param).filled(:int?, included_in?: [42])
+  end
+end
+
+class ReExtendedCommand < ExtendedCommand
+  schema do
+    optional(:ext_ext_param).filled(:int?, included_in?: [42])
   end
 end
 
@@ -34,6 +42,8 @@ HI = {
     }
   },
   amount: 0,
-  just_in_case: 42
+  to_be_filtered: 42,
+  ext_param: 42,
+  ext_ext_param: 42
 }.freeze
 INST = SimpleCommand.schema.call(HI)

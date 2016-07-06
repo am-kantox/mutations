@@ -13,8 +13,8 @@ module Mutations
       end
 
       def schema
-        @schema ||= ::Dry::Validation::Schema::Form
-        @schema = block_given? ? ::Dry::Validation.Schema(@schema, &Proc.new) : @schema
+        @schema ||= derived_schema
+        block_given? ? @schema = ::Dry::Validation.Schema(@schema, &Proc.new) : @schema
       end
 
       def required
@@ -81,6 +81,15 @@ module Mutations
       private :generic_type
 
     private
+
+      def derived_schema
+        this = is_a?(Class) ? self : self.class
+        parent_with_schema = this.ancestors.tap(&:shift).detect do |klazz|
+          break if klazz == Mutations::Dry::Command
+          klazz.respond_to?(:schema) && klazz.schema.is_a?(::Dry::Validation::Schema)
+        end
+        parent_with_schema ? Class.new(parent_with_schema.schema.class).new : ::Dry::Validation::Schema::Form
+      end
 
       ##########################################################################
       ### generic helpers / builders
