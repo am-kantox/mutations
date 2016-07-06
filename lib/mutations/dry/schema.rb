@@ -62,8 +62,8 @@ module Mutations
 
         # FIXME: :strip => true and siblings should be handled with procs?
         current = @current # closure scope
-        type = [params[:nils] ? :maybe : :filled, build_type(__callee__)]
         opts = params[:empty] ? {} : build_opts(__callee__, params)
+        type = [params[:nils] ? :maybe : :filled, build_type(__callee__)]
         schema do
           scope = __send__(current, name)
           opts.empty? ? scope.__send__(*type) : scope.__send__(*type, **opts)
@@ -89,7 +89,15 @@ module Mutations
           break if klazz == Mutations::Dry::Command
           klazz.respond_to?(:schema) && klazz.schema.is_a?(::Dry::Validation::Schema)
         end
-        parent_with_schema ? Class.new(parent_with_schema.schema.class).new : ::Dry::Validation::Schema::Form
+        parent_with_schema ? Class.new(parent_with_schema.schema.class).new : empty_schema
+      end
+
+      def empty_schema
+        ::Dry::Validation.Schema do
+          configure do
+            config.input_processor = :sanitizer
+          end
+        end
       end
 
       ##########################################################################
