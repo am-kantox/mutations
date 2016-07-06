@@ -1,17 +1,6 @@
 module Mutations
   module Dry
     module Schema
-      USE_HASHIE_MASH = begin
-        require 'hashie/mash'
-        true
-      rescue LoadError => e
-        $stderr.puts [
-          '[DRY] Could not find Hashie::Mash.',
-          'You probably want to install it / add it to your Gemfile.',
-          "Error: [#{e.message}]."
-        ].join($/)
-      end
-
       def schema
         @schema ||= derived_schema
         block_given? ? @schema = ::Dry::Validation.Schema(@schema, &Proc.new) : @schema
@@ -57,7 +46,7 @@ module Mutations
           __send__(current, name).schema(nested)
         end
         define_method(name) do
-          USE_HASHIE_MASH ? Kernel.const_get('Hashie::Mash').new(@inputs[name]) : @inputs[name]
+          Mutations::Init.hashify @inputs[name]
         end unless is_a?(Instance)
       end
 
@@ -71,7 +60,11 @@ module Mutations
           scope = __send__(current, name)
           opts.empty? ? scope.__send__(*type) : scope.__send__(*type, **opts)
         end
-        define_method(name) { @inputs[name] } unless is_a?(Instance)
+        unless is_a?(Instance)
+          define_method(name) { @inputs[name] }
+          define_method(:"#{name}_present?") { @inputs.key?(name) }
+          define_method(:"#{name}=") { |value| @inputs[name] = value }
+        end
       end
 
       %i(string integer float).each do |m|

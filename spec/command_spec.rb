@@ -59,12 +59,12 @@ describe "Command" do
 
     it "should execute custom validate method during run" do
       outcome = SimpleCommand.run(:name => "JohnLong", :email => "xxxx")
-      
+
       assert !outcome.success?
       assert_nil outcome.result
       assert_equal :invalid, outcome.errors.symbolic[:email]
     end
-    
+
     it "should execute custom validate method only if regular validations succeed" do
       outcome = SimpleCommand.validate(:name => "JohnTooLong", :email => "xxxx")
 

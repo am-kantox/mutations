@@ -9,7 +9,7 @@ module Mutations
         end
 
         @validation = self.class.schema.(@raw_inputs)
-        @inputs = @validation.output
+        @inputs = Mutations::Init.hashify @validation.output
 
         # dry: {:name=>["size cannot be greater than 10"],
         #       :properties=>{:first_arg=>["must be a string", "is in invalid format"]},
@@ -22,6 +22,7 @@ module Mutations
         @errors = @validation.messages.each.with_index.with_object(ErrorHash.new) do |((k, v), idx), memo|
           memo[k] = dig(k, v, idx)
         end
+        @errors = nil if @errors.empty?
 
         # Run a custom validation method if supplied:
         validate unless has_errors?
