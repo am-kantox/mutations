@@ -59,10 +59,18 @@ module Mutations
         define_method(name) { @inputs[name] } unless is_a?(Instance)
       end
 
-      def duck name, methods: []
+      def duck name, nils: false, methods: []
         current = @current # closure scope
         schema do
-          __send__(current, name) { duck?([*methods]) }
+          __send__(current, name).__send__(nils ? :maybe : :filled, duck?: [*methods])
+        end
+      end
+
+      def model name, nils: false, **params # class: nil, builder: nil, new_records: false
+        current = @current # closure scope
+        schema do
+          __send__(current, name).__send__(nils ? :maybe : :filled, model?: params[:class])
+          # , builder: params[:builder], new_records: params[:new_records] # FIXME: NOT YET IMPLEMENTED
         end
       end
 

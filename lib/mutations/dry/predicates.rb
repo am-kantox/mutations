@@ -4,7 +4,12 @@ module Mutations
       include ::Dry::Logic::Predicates
 
       predicate(:duck?) do |expected, current|
-        expected.nil? || expected.empty? || expected.all?(&current.method(:respond_to?))
+        expected.empty? || expected.all?(&current.method(:respond_to?))
+      end
+
+      # FIXME: at the moment this is an exact equivalent of :type? => User
+      predicate(:model?) do |expected, current|
+        expected.nil? || current.is_a?(expected)
       end
     end
   end

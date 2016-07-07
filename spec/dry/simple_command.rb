@@ -6,6 +6,7 @@ class SimpleCommand < Mutations::Command
     string :email, matches: /\A\w+@(\w+\.)+\w+\z/
     string :to_be_stripped
     duck   :donald, methods: :non_existing_method
+    model  :klazz, class: Integer
     hash :properties do
       string :first_arg, matches: /\A\w+\z/
       hash :second_arg do
@@ -60,6 +61,7 @@ HI = {
   email: 'am@kantox.com',
   to_be_stripped: '    o_o      ',
   donald: :symbol,
+  klazz: :forty_two,
   properties: {
     first_arg: 42,
     second_arg: {
