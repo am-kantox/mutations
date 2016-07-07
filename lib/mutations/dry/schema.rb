@@ -92,7 +92,7 @@ module Mutations
         end
       end
 
-      %i(string integer float).each do |m|
+      %i(string integer float date time).each do |m|
         alias_method m, :generic_type
       end
 
