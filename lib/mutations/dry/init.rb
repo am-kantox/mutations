@@ -4,6 +4,7 @@ module Mutations
       require 'dry-validation'
       require 'mutations/dry/monkeypatches'
       require 'mutations/dry/errors'
+      require 'mutations/dry/predicates'
       require 'mutations/dry/types'
       require 'mutations/dry/schema'
       require 'mutations/dry/command'

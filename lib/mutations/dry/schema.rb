@@ -3,7 +3,9 @@ module Mutations
     module Schema
       def schema
         @schema ||= derived_schema
-        block_given? ? @schema = ::Dry::Validation.Schema(@schema, **@schema.options, &Proc.new) : @schema
+        return @schema unless block_given?
+
+        @schema = ::Dry::Validation.Schema(@schema, **@schema.options, &Proc.new)
       end
 
       def required
@@ -57,6 +59,13 @@ module Mutations
         define_method(name) { @inputs[name] } unless is_a?(Instance)
       end
 
+      def duck name, methods: []
+        current = @current # closure scope
+        schema do
+          __send__(current, name) { duck?([*methods]) }
+        end
+      end
+
       def generic_type name = nil, **params
         fail AnonymousTypeDetected.new(__callee__) if name.nil?
 
@@ -93,14 +102,16 @@ module Mutations
       end
 
       def empty_schema
-        ::Dry::Validation.Schema(
-          error_compiler: Mutations::Dry::ErrorCompiler.new(::Dry::Validation::Schema.messages)
-        ) do
+        ::Dry::Validation.Schema do
           configure do
+            # config.messages = :i18n
+            config.messages_file = ::File.join __dir__, '..', '..', '..', 'config', 'messages.yml'
             config.hash_type = :symbolized
             config.input_processor = :sanitizer
+
+            predicates(::Mutations::Dry::Predicates)
           end
-        end.with(error_compiler: ::Mutations::Dry::ErrorCompiler)
+        end
       end
 
       ##########################################################################

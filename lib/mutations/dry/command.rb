@@ -19,10 +19,9 @@ module Mutations
         #       :properties=>{
         #           :second_arg=>{:second_sub_arg=>#<Mutations::ErrorAtom:0x000000095344a0 @key=:second_sub_arg, @symbol=:in, @message=nil, @index=nil>}
         #       :amount=>#<Mutations::ErrorAtom:0x00000009534068 @key=:amount, @symbol=:in, @message=nil, @index=nil>}
+
         @errors = ::Mutations::Dry::ErrorAtom.patch_message_set(
-          ::Dry::Validation::ErrorCompiler.new(
-            ::Dry::Validation::Schema.messages
-          ).(@validation.to_ast.last)
+          ::Dry::Validation::ErrorCompiler.new(self.class.schema.error_compiler.messages).(@validation.to_ast.last)
         )
 
         # Run a custom validation method if supplied:
