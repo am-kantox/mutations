@@ -19,29 +19,18 @@ module Mutations
         #       :properties=>{
         #           :second_arg=>{:second_sub_arg=>#<Mutations::ErrorAtom:0x000000095344a0 @key=:second_sub_arg, @symbol=:in, @message=nil, @index=nil>}
         #       :amount=>#<Mutations::ErrorAtom:0x00000009534068 @key=:amount, @symbol=:in, @message=nil, @index=nil>}
-        @errors = @validation.messages.each.with_index.with_object(ErrorHash.new) do |((k, v), idx), memo|
-          memo[k] = dig(k, v, idx)
-        end
-        @errors = nil if @errors.empty?
+        @errors = ::Mutations::Dry::ErrorAtom.patch_message_set(
+          ::Dry::Validation::ErrorCompiler.new(
+            ::Dry::Validation::Schema.messages
+          ).(@validation.to_ast.last)
+        )
 
         # Run a custom validation method if supplied:
         validate unless has_errors?
       end
 
-    private
-
-      def dig key, value, idx
-        case value
-        when Hash then value.each_with_object(ErrorHash.new) { |(k, v), memo| memo[k] = dig(k, v, idx) }
-        else ErrorAtom.new(key, symbol(key), message: [*value].join(', '), index: idx)
-        end
-      end
-
-      # Yeah, I know this is an ugly hack. So what?
-      def symbol key
-        @validation.errors.detect { |e| e.name == key }.result.rule.predicate.id
-      rescue
-        "#{key}_guard".to_sym # FIXME
+      def messages
+        @messages ||= @errors.values.map(&:dry_message)
       end
     end
   end

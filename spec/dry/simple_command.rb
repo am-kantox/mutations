@@ -4,6 +4,7 @@ class SimpleCommand < Mutations::Command
   required do
     string :name, max_length: 10, matches: /\A\z/
     string :email, matches: /\A\w+@(\w+\.)+\w+\z/
+    string :to_be_stripped
     hash :properties do
       string :first_arg, matches: /\A\w+\z/
       hash :second_arg do
@@ -56,6 +57,7 @@ end
 HI = {
   name: 'Aleksei Matiushkin',
   email: 'am@kantox.com',
+  to_be_stripped: '    o_o      ',
   properties: {
     first_arg: 42,
     second_arg: {

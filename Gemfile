@@ -12,5 +12,5 @@ group :development do
   gem 'awesome_print', require: false
 end
 
-gem 'dry-validation', require: false
+gem 'dry-validation', github: 'dry-rb/dry-validation'
 gem 'hashie', require: false

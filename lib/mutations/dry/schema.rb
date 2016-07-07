@@ -3,7 +3,7 @@ module Mutations
     module Schema
       def schema
         @schema ||= derived_schema
-        block_given? ? @schema = ::Dry::Validation.Schema(@schema, &Proc.new) : @schema
+        block_given? ? @schema = ::Dry::Validation.Schema(@schema, **@schema.options, &Proc.new) : @schema
       end
 
       def required
@@ -93,11 +93,14 @@ module Mutations
       end
 
       def empty_schema
-        ::Dry::Validation.Schema do
+        ::Dry::Validation.Schema(
+          error_compiler: Mutations::Dry::ErrorCompiler.new(::Dry::Validation::Schema.messages)
+        ) do
           configure do
+            config.hash_type = :symbolized
             config.input_processor = :sanitizer
           end
-        end
+        end.with(error_compiler: ::Mutations::Dry::ErrorCompiler)
       end
 
       ##########################################################################
@@ -129,12 +132,8 @@ module Mutations
       # ★ :discard_empty => false, # If the param is optional, discard_empty: true drops empty fields.
       # ★ :allow_control_characters => false    # false removes unprintable characters from the string
       def build_opts_string params
-        {
-          min_size?:    (params[:min_length] || 1 if params[:min_length]),
-          max_size?:    (params[:max_length] if params[:max_length]),
-          format?:      (params[:matches] if params[:matches]),
-          included_in?: (params[:in] if params[:in])
-        }
+        # keys = %i(min_size? max_size? format? included_in?)
+        ::Mutations::Dry.Map(params)
       end
 
       # ====== validators ======
@@ -146,11 +145,8 @@ module Mutations
       # ====== formatters ======
       # ★ :empty_is_nil => false,  # if true, treat empty string as if it were nil
       def build_opts_integer params
-        {
-          min_size?:    (params[:min] if params[:min]),
-          max_size?:    (params[:max] if params[:max]),
-          included_in?: (params[:in] if params[:in])
-        }
+        # keys = %i(gteq? lteq? included_in? inclusion?)
+        ::Mutations::Dry.Map(params)
       end
 
       class Instance

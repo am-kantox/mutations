@@ -35,4 +35,31 @@ module Mutations
       end
     end
   end
+
+  module Dry
+    MAP = {
+      min_size?:    :min_length,
+      max_size?:    :max_length,
+      format?:      :matches,
+      inclusion?:   :in, # deprecated in Dry
+      included_in?: :in,
+      gteq?:        :min,
+      lteq?:        :max
+    }
+
+    # rubocop:disable Style/MethodName
+    def self.Map params, keys = nil
+      keys ||= MAP.keys
+      keys.zip(MAP.values_at(*keys).map(&params.method(:[])))
+          .to_h
+          .reject { |_, v| v.nil? }
+    end
+    # rubocop:enable Style/MethodName
+  end
+end
+
+module Dry
+  module Mutations
+    MAP = ::Mutations::Dry::MAP.invert
+  end
 end
